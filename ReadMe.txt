@@ -1,6 +1,6 @@
 			"Read Me" for CSSR
 		Kristina Lisa Klinkner and Cosma Rohilla Shalizi
-		<rot13 xxyvaxare@tznvy.pbz>, <rot13 pfunyvmv@fgng.pzh.rqh>
+		kklinkner@gmail.com, cshalizi@stat.cmu.edu
 		Last revised 18 April 2008
 
 

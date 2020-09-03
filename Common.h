@@ -11,11 +11,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
-#include <fstream.h>
+#include <fstream>
 #include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <string.h>
+#include <iostream>
+#include <iomanip>
+#include <string>
 #include <ctype.h>
 
 #define INCREMENT 10     //size of array growth
@@ -26,5 +26,7 @@
 #define SYMB_SIZE 1      //size of alpha symbol in ascii characters
 #define MAX_STRING 80	 //maximum memory allocation for a generic string
 typedef unsigned long ulong;
+
+using namespace std;
 
 #endif

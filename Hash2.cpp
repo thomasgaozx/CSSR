@@ -147,7 +147,6 @@ int HashTable2::WhichIndex(char* string)
     {
       if(strcmp(string,(temp->m_string))==0)
 	index = temp->m_index;
-		
       temp = temp->m_nextPtr;
     }
 
@@ -155,7 +154,7 @@ int HashTable2::WhichIndex(char* string)
     {
       cerr << "HashTable2::WhichIndex: String or symbol not in table.\n"
 	   << "A string/history has been encountered in the data which has"
-	   << "not been recorded in the set of states.  "
+	   << " not been recorded in the set of states. "
 	   << "See 'ReadMe' file for details";
       exit(1);
     }
