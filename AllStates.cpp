@@ -226,9 +226,11 @@ void AllStates::CalcNewDist(int length, ParseTree& parsetree)
   int listSize;
 
   //get list containing all strings of proper length 
+  printf ("call parsetree.FindStrings from AllStates CalNewDist  length %d \n", length);
   parsetree.FindStrings(length, &g_array);
   list = g_array.getList();
   listSize = g_array.getSize();
+  printf ("Listsize %d \n", listSize);
 
   //for all of the strings
   for(int i =0; i < listSize; i++)
@@ -244,8 +246,17 @@ void AllStates::CalcNewDist(int length, ParseTree& parsetree)
 	}
 
       //divide by total string occurences
+      //      for(int j =0; j < m_distSize; j++)
+      //	newDist[j] = newDist[j]/(double)stringCount;
+
+      //divide by total string occurences, CORRECTED RM 2 July 2019
       for(int j =0; j < m_distSize; j++)
-	newDist[j] = newDist[j]/(double)stringCount;
+        {
+          if (stringCount != 0)
+             newDist[j] = newDist[j]/(double)stringCount;
+          else newDist[j] = 1.0 / m_distSize;;
+        }
+      if (stringCount == 0) stringCount = 1;
 
       //check whether new distribution matches that of parent state
       match =  CompareToParent(removalString, removalState, list[i],
@@ -258,8 +269,10 @@ void AllStates::CalcNewDist(int length, ParseTree& parsetree)
       //if there were no matches make new state
       if(match == false)
       	{
+	  //	  printf ("match is false   m_arraySize %d \n", m_arraySize);
 	  //insert new string
 	  Insert(list[i], m_arraySize);
+	  //          printf ("m_arraySize %d \n", m_arraySize);
 
 	  //calculate probability distribution
 	  m_StateArray[m_arraySize - 1]->CalcCurrentDist();
@@ -267,6 +280,7 @@ void AllStates::CalcNewDist(int length, ParseTree& parsetree)
 	  //remove ancestor-strings when progeny 
 	  //creates new state
 	  RemoveAncestors(removalString, removalState);
+	  //	  printf ("list[i] %s removalString %s removalState %d \n", list[i]->getString(), removalString, removalState); 
        	}
     }
   delete[] newDist;
@@ -748,8 +762,11 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char* alpha)
 
   symbol[1] = '\0';
   temp = m_StateArray[state]->getStringList();
-
-  shortestLength = strlen(temp->m_string) + 2;
+  // debugRM
+  if (temp == NULL)
+    printf ("empty list \n");
+  else 
+    shortestLength = strlen(temp->m_string) + 2;
 
   for(int k = 0; k < m_distSize; k++)
     {
@@ -757,7 +774,9 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char* alpha)
       isNull = true;
       temp = m_StateArray[state]->getStringList();
 
-      while( isNull == true && temp && isTooLong == false)
+      // debugRM
+      //      while( isNull == true && temp && isTooLong == false)
+      while( isNull == true && temp != NULL && isTooLong == false)
 	{
 	  length = strlen(temp->m_string) + 2;
 	  childString = new char[length];
@@ -802,7 +821,7 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char* alpha)
 	  m_StateArray[state]->setTransitions(k, childState);
 	}
     }
-  delete[] symbol;
+  //  delete[] symbol;
 }
 
 
@@ -1315,6 +1334,7 @@ void AllStates::GetStateDistsMulti(ParseTree& parsetree, char input[],
   char* inputFile = new char[strlen(input) + 13 + END_STRING];
   int diff = 0;
   char* synchString0 = new char[MAX_STRING + 2 + END_STRING];
+  int oldState = 0;
 
   //create file streams
   strcpy(inputFile,input);
@@ -1337,14 +1357,19 @@ void AllStates::GetStateDistsMulti(ParseTree& parsetree, char input[],
       symbol[1] = '\0';
 
       //initial synchronization
+      printf ("initial synchronization synchString0 %s \n", synchString0);
       state = SynchToStatesMulti(i,k,state, maxLength, &outData, data,
 				 dataLength, synchString0);
+      printf ("synchString0 %s \n", synchString0);
 
       //Adjust for synch time, check for end of line
+      printf ("CheckSynchError0 \n");
       if (CheckSynchError(i, state, synchString0, parsetree, isMulti, i-1))
+	{
 	state = SynchToStatesMulti(i,k,state, maxLength, &outData, data,
 				   dataLength, synchString0);
-
+	printf ("CheckSynchError0 synchString0 %s \n", synchString0);
+	}
       adjustedDataLength -= (i - 1);
       symbol[0] = data[i];
       counts[state]++;
@@ -1354,12 +1379,16 @@ void AllStates::GetStateDistsMulti(ParseTree& parsetree, char input[],
       while(i < dataLength)
 	{
 	  //end of line in data, resynchronize
-	  if(data[i] == '\n')
+          printf ("i %d data[i] %c k %d \n", i, data[i], k); 
+	  if(data[i] == '\n' || data[i+1] == '\n')
 	    {
+	      printf ("data[i] == newline   i %d data[i] %c \n",i, data[i]);
 	      i= i + SYSTEM_CONST;
+              if (data[i] == '\n') i= i + SYSTEM_CONST;
 	      //if the last return was the last character altogether
 	      if(i >= dataLength)
 		break;
+              printf ("data[i] == newline   i %d data[i] %c \n",i, data[i]);
 	      k = 0;
 	      outData << '\n';
 	      diff = i;
@@ -1367,11 +1396,13 @@ void AllStates::GetStateDistsMulti(ParseTree& parsetree, char input[],
 					 dataLength, synchString0);
 	      
 	      //Adjust for synch time, check for end of line
+              printf ("CheckSynchError1 state %d \n", state);
 	      if (CheckSynchError(i, state, synchString0, parsetree, isMulti,
 				  i-diff-1))
+		{
 		state = SynchToStatesMulti(i,k,state, maxLength, &outData,
 					   data, dataLength, synchString0);
-
+		}
 	      diff = i - diff - 1;
 	      adjustedDataLength -= diff;				
 	      counts[state]++;
@@ -1379,24 +1410,30 @@ void AllStates::GetStateDistsMulti(ParseTree& parsetree, char input[],
 	      symbol[0] = data[i];
 	    }
 
+          oldState = state;
 	  state = m_StateArray[state]->getTransitions
 	    (hashtable->WhichIndex(symbol)); 
-				
+	  printf ("oldState %d state %d \n", oldState, state);
+		
 	  //null transition, bad model, must resynchronize
 	  if(state == NULL_STATE)
 	    {
+	      printf ("state == NULL i %d data[i] %c k %d \n",i, data[i], k);
 	      diff = i;
 	      m_reSynch = true;
 	      state = SynchToStatesMulti(i,k,state, maxLength, &outData, data, 
 					 dataLength, synchString0);
 	      
-	      
+              printf ("state %d  i %d k %d \n", state, i, k);
 	      //Adjust for synch time, check for end of line
+	      printf ("CheckSynchError2 \n");
 	      if (CheckSynchError(i, state, synchString0, parsetree, isMulti,
 				  i-diff - 1))
+		{
+		  printf ("CheckSynchError3 \n");
 		state = SynchToStatesMulti(i,k,state, maxLength, &outData,
 					   data, dataLength, synchString0);
-
+			  }
 	      i--;
 	      diff = i - diff - 1;
 	      adjustedDataLength -= diff;	
@@ -1458,10 +1495,14 @@ bool AllStates::CheckSynchError(int index,int state, char*& synchString0,
       else if(state == NULL_STATE && isMulti)
 	{
 	  //call synch to states again
+	  printf ("state == NULL and isMulti \n");
 	  isSynchAgain = true;
 	}
       //decrement synchString from tree
+      
+	printf ("SynchString0 %s index %d \n", synchString0, index);
       parsetree.MakeSynchAdjustements(synchString0, index);
+      
     }
   //clear synchstring
   delete[] synchString0;
@@ -1526,7 +1567,14 @@ int AllStates::SynchToStatesMulti(int& index, int& lineIndex,int state,
 	*outData<<'\n';
 	break;
       }
-			
+    else if (data[index+1] == '\n')
+      {
+        lineIndex = 0;
+        tempIndex = 0;
+	index = index + SYSTEM_CONST + SYSTEM_CONST;
+        *outData<<'\n';
+        break;
+      }
     if(tempIndex >= maxLength)
       {
 	tempString = new char[maxLength +  1 + END_STRING];

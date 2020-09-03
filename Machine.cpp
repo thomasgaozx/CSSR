@@ -175,7 +175,8 @@ void Machine::CalcRelEnt(ParseTree& parsetree, HashTable2* hashtable,
 
       dataProb = ((double)occurrence)/((double) adjustedDataSize);
 
-      if (dataProb)
+//added condition on stringProbs[i] to avoid log 0 if it's zero!  -C L Nehaniv 25 July 2013
+      if (dataProb and stringProbs[i])
 	{
 	  logRatio = log(dataProb) -log(stringProbs[i]);
 	  logRatio *= dataProb;
@@ -615,3 +616,90 @@ void Machine::PrintDot(char input[], char alpha[])
   outData.close();
   delete[] output;
 }
+///////////////////////////////////////////////////////////////////////////
+// Function: Machine::PrintGap  (added by Chrystopher Nehaniv, 2 July 2013)    
+// Purpose: prints out transformations of machine to a .g file
+//          for analysis with GAP and SgpDec
+// ToDo:  Output full machine including probabilities into an epsilon machine
+//        object for GAP
+// In Params: the name of the input file used for program, the alphabet, max length of histories
+// Out Params: none
+// In/Out Params: none
+// Pre- Cond: all values in array of states have been set
+// Post-Cond: output .g file exists with transformation semigroup generators of machine
+//            and vectors of probabilites of occurrence for each generator (indexed by state number)
+// NB: all state names shifted by +1. 
+//////////////////////////////////////////////////////////////////////////
+void Machine::PrintGap(char input[], char alpha[],int maxLength)
+{
+  char* output = new char[strlen(input) + 18];
+
+  strcpy(output,input);
+  strcat(output, "_epsilon_machine.g");
+
+  printf ("name g file is %s\n", output);
+
+  //create file streams
+  ofstream outData(output, ios::out);
+
+  //open output file, if unsuccessful exit
+  if(!outData)
+    {
+      cerr << " the .dot output file cannot be opened " << endl;
+      exit(1);
+    }
+  //otherwise output data
+  else
+    {
+      int size = m_allstates->getArraySize();
+      int distSize = m_allstates->getDistSize();
+      State* state;
+      int nextState;
+      double* dist;
+
+     outData << "# Epsilon Machine Contructed from " << input << " with maximum history length " << maxLength << " :" << endl;
+     outData << "# GAP extension by Chrystopher L. Nehaniv (4 July 2013) to Kristina Klinkner's CSSR " << endl;
+     outData << "# Transitions are Transformations t<i>  where <i> is member of the alphabet " << alpha << " ." << endl; 
+     outData << "#  (These generate the transformation semigroup of the epsilon-machine.) "<< endl;
+     outData << "# Probabilities of transitions t<i> occurring are in state-indexed Lists p<i> where <i> is member of the alphabet " << alpha <<" ." << endl; 
+     outData << "#  (That is, the state j transition <i> occurs with probability given by the jth element of List p<i>.) " << endl;
+     outData << "# Number of States : " << size << " +1 unreachable Garbage State (state " << size+1 << " \n" <<endl; 
+ 
+ for(int k =0; k < distSize; k++)
+      {
+         //out the state transformation for the kth symbol
+       outData << "t" << alpha[k] << " := Transformation([";  
+         for(int i = 0; i < size; i++)
+         { state = m_allstates->getState(i);
+             dist = state->getCurrentDist();
+             nextState = state->getTransitions(k);
+             if(nextState != NULL_STATE)
+                  outData << nextState + 1 ;
+               else outData << size + 1;        // garbage state if transition to NULL  
+              outData << ",";  
+           }
+
+          outData << size +1;  //garbage state maps to itself
+          outData << "]);\n" << endl;
+       }
+          //output the probabilities of the kth symbol occuring (list indexed by states)  
+
+         for(int k =0; k < distSize; k++)
+         {outData << "p" << alpha[k] << " := ["; 
+          for(int i = 0; i < size; i++)
+           {
+              state = m_allstates->getState(i);
+              dist = state->getCurrentDist();
+              outData << setiosflags(ios::left) << setw(7) << setprecision(4) << dist[k] << " , " ;
+           }
+           // probability of kth symbol in garbage state is 1/distSize  (all symbols equiprobable)
+          outData << setiosflags(ios::left) << setw(7) << setprecision(4) << 1/(double)distSize  ;
+          outData << "  ];\n" << endl;
+        }
+
+
+    }
+  outData.close();
+  delete[] output;
+}
+

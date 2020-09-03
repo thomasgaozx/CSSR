@@ -10,7 +10,9 @@
 //              Outputs a file of states, a file of state sequences, a dot
 //              file, and an information file with the metrics.
 //
-/////////////////////////////////////////////////////////////////////////////
+//               PrintGap function added 2013 by Chrystopher Nehaniv
+//               to allow machine to be output for analysis using GAP and SGPDEC
+//////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -86,7 +88,11 @@ int main(int argc, char *argv[])
   if(!isSigLevel)
     sigLevel = SIGLEVEL;
   else
-    cout << "Significance level set to " << sigLevel <<".\n";
+    {
+      sigLevel = atof (argv[6]);
+      printf ("sigLevel %e\n", sigLevel);
+	}
+  // cout << "Significance level set to " << sigLevel <<".\n";
 
   //create parse tree to store all strings in data
   ParseTree parsetree(max_length);
@@ -125,17 +131,22 @@ int main(int argc, char *argv[])
     allstates.CalcNewDist(k, parsetree);
 
   //remove shorter strings
+  printf ("HERE DestroyShortHists \n");
   stateRemoved = allstates.DestroyShortHists(max_length, parsetree);
 
+
   //remove all non-recurring states
-  allstates.CheckConnComponents(parsetree);
+  // RM commented this out to allow transient states                                                                                                 
+  //      allstates.CheckConnComponents(parsetree);
 
   //check futures longer than 1,
   //by using determinism of states
+  // RM: commenting this out would skip the splitting phase
   allstates.Determinize(parsetree);
 
   //remove all non-recurring states (again, since there may be new ones)
-  allstates.CheckConnComponents(parsetree);
+  // RM commented this out to allow transient states
+  //    allstates.CheckConnComponents(parsetree);
 
   //store transitions from state to state
   allstates.StoreTransitions(parsetree.getMaxLength(), parsetree.getAlpha());
@@ -157,7 +168,11 @@ int main(int argc, char *argv[])
   //print out machine and calculationsf
   machine->PrintOut(data_file, alpha_file, data_file, max_length, sigLevel, isMulti, isChi, parsetree.getAlphaSize());
   machine->PrintDot(data_file, parsetree.getAlpha());
-
+ 
+  //print out transformations generating semigroup of the machine as a GAP file
+  // together with probabilites of each transition occurring in each state
+  // printf ("start of PrintGap\n");
+  machine->PrintGap(data_file, parsetree.getAlpha(),max_length);
   delete machine;
   return 1;
 }

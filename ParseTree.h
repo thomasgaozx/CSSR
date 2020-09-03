@@ -13,7 +13,7 @@
 #include "Common.h"
 #include "G_Array.h"
 #include "Hash2.h"
-#define MAX_LINE_SIZE 500000
+#define MAX_LINE_SIZE 600000
 
 class TreeNode
 {

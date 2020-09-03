@@ -1,0 +1,29 @@
+This is the original CSSR-v0.1.1 apart from 
+
+1) the corrected header file (Common.h)
+
+2) two extensions by Chrystopher Nehaniv 
+(output to .g file for analysis with GAP, see 
+Main.cpp, Main.h, Machine.cpp, Machine.h).
+
+3) several corrections by Reinoud Maex, 
+up to 24 January 2020 (up to Report 40).
+These corrections comprise:
+
+a) a minor change in Main.cpp to allow 
+CSSR to run in batch with the -s option
+(in the default version the significance value
+was asked for interactively).
+
+b) a correction in AllStates around line 252
+to prevent the program from exiting with error msg
+'a too large'.
+
+c) several bugs corrected as described in 
+Reports 36-39.
+Most of these changes made by RM can be localized
+by the command
+> grep -n RM *.cpp
+
+Note that this is still a confidential 
+construction site, not intended for release.

@@ -9,6 +9,7 @@
 #ifndef	__HASH_H
 #define	__HASH_H
 #define HASHSIZE  359
+// 359
 
 #include "Common.h"
 #include "States.h"

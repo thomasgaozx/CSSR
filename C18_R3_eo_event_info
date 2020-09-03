@@ -1,0 +1,13 @@
+Alphabet File: alphabet.txt
+Data File: C18_R3_eo_event
+History Length: 5
+Significance Level: 0.001
+Multiline Mode: true
+Chi-squared test used: true
+Alphabet Size: 4
+Relative Entropy: 0
+Relative Entropy Rate: 0.00985455
+Statistical Complexity: 1.98938
+Entropy Rate: 1.51949
+Variation: 0.870979
+Number of Inferred States: 4

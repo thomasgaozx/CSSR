@@ -5,6 +5,7 @@
 //Description:	Header file for Machine.cpp
 //
 /////////////////////////////////////////////////////////////////////////////
+// modified July 2, 2013 by Chrystopher Nehaniv to add GAP output function
 
 
 #ifndef __MACHINE_H
@@ -45,6 +46,7 @@ class Machine
   double getEntRate(){return m_entRate;}
   void PrintOut(char input[], const char*, const char*, const int&, const double&, const bool&, const bool&, int);
   void PrintDot(char input[], char alpha[]);
+  void PrintGap(char input[], char alpha[], int maxLength);
 
  private:
 

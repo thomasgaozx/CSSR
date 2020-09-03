@@ -47,14 +47,14 @@ void CheckArgs(char* argv[], bool& isMulti, bool& isSigLevel,
     isMulti = true;
   else if(strcmp(argv[index], "-s") == 0 && isSigLevel == false)
     {
-      cout << "Enter significance level: "<<endl;
-      cin >> sigLevel;
+      //      cout << "Enter significance level: "<<endl;
+      //      cin >> sigLevel;
       isSigLevel = true;
     }
   else if(strcmp(argv[index], "-ch") == 0 && isChi == false)
     isChi = true;
-  else
-    PrintError();
+  else ;
+    //    PrintError();
 
 }
 

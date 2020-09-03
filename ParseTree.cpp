@@ -184,6 +184,7 @@ void ParseTree::DecStringCount(char* stringToDec)
 void ParseTree::FindStrings(TreeNode* root, int length, char* parentString, 
 			    G_Array* array)
 {
+  //  printf ("parentString %s %d \n", parentString, length);
   //if strings do not exist at this branch return
   if(root == NULL)
     return;
@@ -231,7 +232,9 @@ void ParseTree::FindStrings(TreeNode* root, int length, char* parentString,
 	      tempChild = tempChild->m_sibling;
 	    }
 	  //input each in growable array class
-	  array->Insert(tempString, counts, m_alphaSize);
+	  // DEBUG Reinoud Maex 10Jan2020
+	  if (root->m_child != NULL)
+	    array->Insert(tempString, counts, m_alphaSize);
 	  root = root->m_sibling;
 	}
       //free memory
@@ -296,6 +299,7 @@ void ParseTree::FillTree()
   int i, j, k;
 
   for(i = 0; i <= (m_dataSize - max_length); i++)
+    //  for(i = 0; i <= (m_dataSize - max_length-1); i++)
     {
       for(k=0; k < max_length; k++)
 	string[k] = m_data[k+i];
@@ -303,15 +307,23 @@ void ParseTree::FillTree()
       string[k] = '\0';
       Insert(string);
     }
- 
+
+  printf ("ParseTree fill %s \n", string);  
+  printf ("m_dataSize - max_length + 1 %d  i %d \n", m_dataSize - max_length + 1, i);
+  // if statement added Reinoud Maex 6Jan20
+  //  printf ("m_data %s \n", &m_data[1]); 
+  if (i < m_dataSize)
   for(k=0; k< max_length;k++,i++)
     {
-      for(j =0; j <max_length-k;j++)
+      //      for(j =0; j <max_length-k-2;j++)
+	for(j =0; j <max_length-k;j++)
 	string[j] = m_data[j+i];
 
       string[j] = '\0';
+      printf ("ParseTree fill %s \n", string); 
       Insert(string);
     }
+  
 }
 
 
@@ -544,6 +556,7 @@ void ParseTree::ReadInput(char alphaFile[], char dataFile[])
 //////////////////////////////////////////////////////////////////////////
 void ParseTree::DecStringCount(char string[], TreeNode*& root)
 {
+  printf ("DecStringCount0 %s \n", string);
   //base case, we are done with string
   if(strlen(string) < 1)
     return;
@@ -552,6 +565,7 @@ void ParseTree::DecStringCount(char string[], TreeNode*& root)
   if(root == NULL)
     {
       //no match
+      printf ("DecStringCount1 %s \n", string);
       cerr << "Attempting to decrement occurence of string which doesn't "
 	   << "show up in data,  ParseTree::DecStringCount " << endl;
       exit(1);
@@ -571,11 +585,15 @@ void ParseTree::DecStringCount(char string[], TreeNode*& root)
       TreeNode** temp;
       temp = &root;
       while(*temp!=NULL && (*temp)->m_symbol!= string[0])
+	{
+	  printf ("m_symbol %c string[0] %c  string %s \n", (*temp)->m_symbol, string[0], string);
 	temp = &((*temp)->m_sibling);
+	}
       //or if not, it should be added there
       if(*temp == NULL)
 	{
           //no match
+          printf ("DecStringCount2 %s \n", string);
 	  cerr << "Attempting to decrement occurence of string which doesn't "
 	       << "show up in data,  ParseTree::DecStringCount " << endl;
 	  exit(1);
@@ -609,9 +627,17 @@ void ParseTree::MakeSynchAdjustements(char* synchString, int index)
   int i,j,k;
   int tempCounter = 0;
 
-
-  for(i = 0; i < m_maxLength - 1; i++)
+  printf ("MakeSynchAdjustments string %s strlength %lu index %d \n", synchString, strlen(synchString), index);
+    for(i = 0; i < m_maxLength - 1 ; i++)
+      //    i = 0;
+      // while (i < m_maxLength - 1 && m_data[index - 1 + i] != '\n')
+    {
       nextLString[i] = m_data[index - 1 + i];
+      // debugRM
+      if (nextLString[i] == '\n')
+	nextLString[i] = '\0';
+      //      i++;
+    }
   nextLString[i] = '\0';
   strcat(tempString, nextLString);
 
@@ -624,6 +650,7 @@ void ParseTree::MakeSynchAdjustements(char* synchString, int index)
 	    nextLString[k] = tempString[k+ counter];
 	  counter++;
 	  nextLString[k] = '\0';
+	  printf ("MakeSynchAdjustments2 nextLstring %s strlength %lu index %d \n", nextLString, strlen(nextLString), index);
 	  DecStringCount(nextLString);
 	}
     }
@@ -633,8 +660,10 @@ void ParseTree::MakeSynchAdjustements(char* synchString, int index)
       for(j =0; j <m_maxLength-k;j++)
 	nextLString[j] = tempString[k + j];
       nextLString[j] = '\0';
+      printf ("MakeSynchAdjustments3 nextLstring %s strlength %lu index %d \n", nextLString, strlen(nextLString), index);
       DecStringCount(nextLString);
     }
+
   m_adjustedDataSize -=(strlen(synchString) - (m_maxLength - 1));
 }
     
@@ -705,18 +734,24 @@ void ParseTree::ReadProcessMultiLine(char alphaFile[], char dataFile[])
       total_size = size;
       size = 0;
       m_numLines++;
+      printf ("line number %d \n", m_numLines);
       strcpy(m_data,buffer);
       m_dataSize = strlen(m_data);
       FillTree();
       size+=m_dataSize;
+      printf ("characters already read %d \n", size);
       while (!inData.eof())
 	{
 	  inData.getline(buffer, MAX_LINE_SIZE);
+          printf ("line number %d \n", m_numLines);
 	  m_numLines++;
 	  strcpy(m_data,buffer);
+          printf ("line read %s \n", m_data);
 	  m_dataSize = strlen(m_data);
+          printf ("m_dataSize %d \n", m_dataSize);
 	  FillTree();
 	  size+=m_dataSize;
+          printf ("characters already read %d \n", size);
 	}
       m_dataSize = size;
       m_adjustedDataSize = m_numLines *(m_dataSize - (m_maxLength - 1));
